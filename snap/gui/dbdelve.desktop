@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=DBDelve
+Comment=A fast, native, multi-engine database client
+Exec=dbdelve
+Icon=${SNAP}/meta/gui/dbdelve.png
+Terminal=false
+Categories=Development;Database;
+# Equal to the app id the window sets for itself, which is what keeps the
+# running window under this icon in the dock rather than beside it. The two
+# have to move together.
+StartupWMClass=dbdelve_dbdelve

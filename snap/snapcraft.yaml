@@ -1,0 +1,77 @@
+name: dbdelve
+base: core26
+version: '0.5.1'
+title: DBDelve
+icon: snap/gui/dbdelve.png
+summary: A fast, native, multi-engine database client
+description: |
+  DBDelve is a native desktop database client built with Rust and GPUI.
+  Browse schemas, run queries, edit data, and connect to PostgreSQL, MySQL,
+  MariaDB, SQLite, SQL Server, MongoDB, Redis and Snowflake.
+license: GPL-3.0-only
+grade: stable
+confinement: strict
+website: https://dbdelve.github.io
+source-code:
+  - https://github.com/ShayanAbbas1/dbdelve
+  - https://github.com/sidalit/dbdelve-snap
+issues:
+  - https://github.com/ShayanAbbas1/dbdelve/issues
+  - https://github.com/sidalit/dbdelve-snap/issues
+contact: https://github.com/sidalit/dbdelve-snap/issues
+
+platforms:
+  amd64:
+  arm64:
+
+apps:
+  dbdelve:
+    command: bin/dbdelve
+    extensions: [gnome]
+    plugs:
+      - home
+      - network
+      - network-bind
+      - password-manager-service
+      - removable-media
+      - ssh-keys
+    environment:
+      PATH: $SNAP/bin:$SNAP/usr/bin:$PATH
+      XDG_STATE_HOME: $SNAP_USER_DATA/.local/state
+
+parts:
+  dbdelve:
+    plugin: rust
+    source: https://github.com/ShayanAbbas1/dbdelve.git
+    source-tag: v$SNAPCRAFT_PROJECT_VERSION
+    source-depth: 1
+    rust-channel: '1.96.1'
+    build-packages:
+      - build-essential
+      - pkg-config
+      - cmake
+      - libfontconfig-dev
+      - libxkbcommon-dev
+      - libxkbcommon-x11-dev
+      - libwayland-dev
+      - libdbus-1-dev
+      - patch
+    stage-packages:
+      - openssh-client
+      - libxkbcommon-x11-0
+    override-pull: |
+      craftctl default
+      # Fix the yanked release's SSE4.1 use on older amd64 CPUs.
+      if grep -A1 '^name = "chacha20"$' Cargo.lock | grep -q '^version = "0.10.1"$'; then
+        cargo update --package chacha20@0.10.1 --precise 0.10.2
+      fi
+      patch -p1 < "$CRAFT_PROJECT_DIR/snap/patches/snap-desktop.patch"
+    override-build: |
+      craftctl default
+      install -Dm755 "$CRAFT_PROJECT_DIR/snap/local/bin/ssh" \
+        "$CRAFT_PART_INSTALL/bin/ssh"
+      install -Dm644 "$CRAFT_PROJECT_DIR/snap/gui/dbdelve.png" \
+        "$CRAFT_PART_INSTALL/usr/share/icons/hicolor/256x256/apps/dbdelve_dbdelve.png"
+      install -Dm644 LICENSE "$CRAFT_PART_INSTALL/usr/share/doc/dbdelve/LICENSE"
+      install -Dm644 NOTICES.md "$CRAFT_PART_INSTALL/usr/share/doc/dbdelve/NOTICES.md"
+      cp -a licenses "$CRAFT_PART_INSTALL/usr/share/doc/dbdelve/"
