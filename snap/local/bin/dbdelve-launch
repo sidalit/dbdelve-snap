@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+ssh_dir="$SNAP_USER_COMMON/ssh"
+(
+    umask 077
+    mkdir -p "$ssh_dir"
+)
+chmod 700 "$ssh_dir"
+
+# Keep newly trusted hosts in writable snap data and retain existing host trust.
+export DBDELVE_SSH_KNOWN_HOSTS="\"$ssh_dir/known_hosts\" \"${SNAP_REAL_HOME:-$HOME}/.ssh/known_hosts\" \"${SNAP_REAL_HOME:-$HOME}/.ssh/known_hosts2\""
+exec "$SNAP/bin/dbdelve" "$@"

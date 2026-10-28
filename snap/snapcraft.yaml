@@ -1,6 +1,6 @@
 name: dbdelve
 base: core26
-version: '0.6.0'
+version: '0.6.1'
 title: DBDelve
 icon: snap/gui/dbdelve.png
 summary: A fast, native, multi-engine database client
@@ -26,7 +26,7 @@ platforms:
 
 apps:
   dbdelve:
-    command: bin/dbdelve
+    command: bin/dbdelve-launch
     extensions: [gnome]
     plugs:
       - home
@@ -36,6 +36,7 @@ apps:
       - removable-media
       - ssh-keys
     environment:
+      DBDELVE_APP_ID: dbdelve_dbdelve
       PATH: $SNAP/bin:$SNAP/usr/bin:$PATH
       XDG_STATE_HOME: $SNAP_USER_DATA/.local/state
 
@@ -55,21 +56,13 @@ parts:
       - libxkbcommon-x11-dev
       - libwayland-dev
       - libdbus-1-dev
-      - patch
     stage-packages:
       - openssh-client
       - libxkbcommon-x11-0
-    override-pull: |
-      craftctl default
-      # Fix the yanked release's SSE4.1 use on older amd64 CPUs.
-      if grep -A1 '^name = "chacha20"$' Cargo.lock | grep -q '^version = "0.10.1"$'; then
-        cargo update --package chacha20@0.10.1 --precise 0.10.2
-      fi
-      patch -p1 < "$CRAFT_PROJECT_DIR/snap/patches/snap-desktop.patch"
     override-build: |
       craftctl default
-      install -Dm755 "$CRAFT_PROJECT_DIR/snap/local/bin/ssh" \
-        "$CRAFT_PART_INSTALL/bin/ssh"
+      install -Dm755 "$CRAFT_PROJECT_DIR/snap/local/bin/dbdelve-launch" \
+        "$CRAFT_PART_INSTALL/bin/dbdelve-launch"
       install -Dm644 "$CRAFT_PROJECT_DIR/snap/gui/dbdelve.png" \
         "$CRAFT_PART_INSTALL/usr/share/icons/hicolor/256x256/apps/dbdelve_dbdelve.png"
       install -Dm644 LICENSE "$CRAFT_PART_INSTALL/usr/share/doc/dbdelve/LICENSE"

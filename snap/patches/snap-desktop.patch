@@ -1,9 +1,0 @@
---- a/src/main.rs
-+++ b/src/main.rs
-@@ -318,5 +318,5 @@
-                 // icon however well the .desktop file is installed. It has to
-                 // equal the entry's basename.
--                app_id: Some("dbdelve".into()),
-+                app_id: Some("dbdelve_dbdelve".into()),
-                 ..Default::default()
-             };
