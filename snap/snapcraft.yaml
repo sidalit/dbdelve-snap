@@ -1,6 +1,6 @@
 name: dbdelve
 base: core26
-version: '0.6.0'
+version: '0.6.1'
 title: DBDelve
 icon: snap/gui/dbdelve.png
 summary: A fast, native, multi-engine database client
