@@ -48,6 +48,7 @@ SSH tunnels use the bundled OpenSSH client. Newly trusted host keys are stored i
 - Use TCP for database servers; host Unix sockets outside accessible directories are restricted.
 - SSH tunnels require key authentication. Host SSH agents, hardware tokens and host `ProxyCommand` programs are not supported. The snap sets its own `UserKnownHostsFile` paths.
 - Existing settings from native DBDelve, DBeaver and editor installations are not discovered automatically. Import files explicitly from an accessible folder.
+- Connecting through ODBC is unavailable: the snap does not include DBDelve's ODBC bridge.
 - Application updates are managed by snapd.
 
 ## Build

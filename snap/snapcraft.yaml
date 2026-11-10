@@ -7,7 +7,8 @@ summary: A fast, native, multi-engine database client
 description: |
   DBDelve is a native desktop database client built with Rust and GPUI.
   Browse schemas, run queries, edit data, and connect to PostgreSQL, MySQL,
-  MariaDB, SQLite, SQL Server, MongoDB, Redis and Snowflake.
+  MariaDB, SQLite, DuckDB, SQL Server, Snowflake, ClickHouse, MongoDB and
+  Redis.
 license: GPL-3.0-only
 grade: stable
 confinement: strict
