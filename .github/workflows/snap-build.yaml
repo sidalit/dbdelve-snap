@@ -23,3 +23,63 @@ jobs:
     uses: sidalit/snap-automation/.github/workflows/snap-build.yaml@v1.3.0
     secrets:
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+
+  # snap-automation releases a tag build to beta only, so without this stable
+  # stays on whatever was last promoted by hand.
+  promote:
+    name: promote release to stable
+    needs: snap
+    if: >-
+      always() && github.ref == 'refs/heads/main' &&
+      github.event_name != 'pull_request'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    steps:
+      - name: Fetch packaging
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Promote the recipe's version from beta to candidate and stable
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: |
+          set -euo pipefail
+          recipe=snap/snapcraft.yaml
+          name=$(yq -r .name "$recipe")
+          version=$(yq -r .version "$recipe")
+          arches=$(yq -r '.platforms | keys | length' "$recipe")
+
+          # Prints "<arch> <revision>" for each architecture whose $1 channel
+          # holds the recipe's version.
+          holding() {
+            curl -fsS --retry 3 -H 'Snap-Device-Series: 16' \
+              "https://api.snapcraft.io/v2/snaps/info/$name" |
+              jq -r --arg risk "$1" --arg version "$version" '
+                .["channel-map"][]
+                | select(.channel.track == "latest" and .channel.risk == $risk
+                         and .version == $version)
+                | "\(.channel.architecture) \(.revision)"'
+          }
+
+          if (( $(holding stable | wc -l) == arches )); then
+            echo "$version is already on stable."
+            exit 0
+          fi
+
+          # The store's public view lags an upload by a few minutes.
+          for attempt in $(seq 20); do
+            beta=$(holding beta)
+            (( $(grep -c . <<< "$beta") == arches )) && break
+            if (( attempt == 20 )); then
+              echo "::error::$version is not on beta for every architecture; nothing promoted."
+              exit 1
+            fi
+            sleep 60
+          done
+
+          sudo snap install snapcraft --classic
+          while read -r arch revision; do
+            snapcraft release "$name" "$revision" candidate,stable
+            echo "Promoted $version ($arch, revision $revision) to candidate and stable." >> "$GITHUB_STEP_SUMMARY"
+          done <<< "$beta"
